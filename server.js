@@ -5,6 +5,14 @@ const flash = require('connect-flash');
 const path = require('path');
 const passport = require('passport');
 const cors = require('cors');
+
+// Import models
+require('./models/User');
+require('./models/Vehicle');
+require('./models/Bin');
+require('./models/ContactUs');
+require('./models/Product');
+
 require('./config/passport');
 require('dotenv').config();
 
@@ -77,6 +85,7 @@ app.use((req, res, next) => {
 app.use('/web', require('./routes/webauth.routes'));
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/contact', require('./routes/contact.routes'));
+app.use('/api/bins', require('./routes/bin.routes'));
 app.use('/admin', require('./routes/admin.routes'));
 
 // Error handling in development

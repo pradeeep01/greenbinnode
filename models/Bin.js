@@ -1,11 +1,6 @@
 const mongoose = require('mongoose');
 
 const binSchema = new mongoose.Schema({
-    vehicleId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Vehicle',
-        required: true
-    },
     addedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -32,16 +27,21 @@ const binSchema = new mongoose.Schema({
         type: Number,
         enum: [0, 1],
         default: 0
+    },
+    type: {
+        type: String,
+        required: true,
+        trim: true
     }
 }, {
     timestamps: true // Adds createdAt and updatedAt timestamps
 });
 
 // Indexes for faster queries
-binSchema.index({ vehicleId: 1 });
 binSchema.index({ addedBy: 1 });
 binSchema.index({ latitude: 1, longitude: 1 }); // Geospatial index
 binSchema.index({ isVerified: 1 }); // Index for verification status
+binSchema.index({ type: 1 }); // Index for bin type
 
 // Pre-save middleware to validate coordinates
 binSchema.pre('save', function(next) {
@@ -84,6 +84,12 @@ binSchema.methods.verify = async function() {
 // Method to unverify bin
 binSchema.methods.unverify = async function() {
     this.isVerified = 0;
+    return this.save();
+};
+
+// Method to update bin type
+binSchema.methods.updateType = async function(newType) {
+    this.type = newType;
     return this.save();
 };
 
