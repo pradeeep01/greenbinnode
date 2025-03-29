@@ -14,5 +14,5 @@ router.get('/login', (req, res) => {
 });
 
 router.post('/login', loginValidation, authController.login);
-router.get('/logout', loginValidation, authController.logout);
+router.get('/logout', authController.logout);
 module.exports = router; 

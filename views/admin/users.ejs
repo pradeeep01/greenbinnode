@@ -1,4 +1,4 @@
-<%- include('../layouts/admin') %>
+<%- include('../layouts/header') %>
 
 <div class="container-fluid">
     <h2 class="mb-4">User Management</h2>
@@ -6,9 +6,9 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Users List</h5>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+            <!-- <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
                 <i class="fas fa-plus"></i> Add User
-            </button>
+            </button> -->
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -88,10 +88,6 @@
                         <input type="text" class="form-control" name="name" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" name="email" required>
-                    </div>
-                    <div class="mb-3">
                         <label class="form-label">Role</label>
                         <select class="form-select" name="role" required>
                             <option value="user">User</option>
@@ -113,11 +109,8 @@ $(document).ready(function() {
     // Load users list
     function loadUsers() {
         $.ajax({
-            url: '/api/admin/users',
+            url: '/admin/users/list',
             method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token')
-            },
             success: function(users) {
                 let usersHtml = '';
                 users.forEach(user => {
@@ -154,11 +147,8 @@ $(document).ready(function() {
     $('#saveUserBtn').click(function() {
         const formData = new FormData($('#addUserForm')[0]);
         $.ajax({
-            url: '/api/admin/users',
+            url: '/admin/users',
             method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token')
-            },
             data: formData,
             processData: false,
             contentType: false,
@@ -178,15 +168,11 @@ $(document).ready(function() {
     $(document).on('click', '.edit-user', function() {
         const userId = $(this).data('id');
         $.ajax({
-            url: `/api/admin/users/${userId}`,
+            url: `/admin/users/${userId}`,
             method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token')
-            },
             success: function(user) {
                 $('#editUserForm [name="userId"]').val(user._id);
                 $('#editUserForm [name="name"]').val(user.name);
-                $('#editUserForm [name="email"]').val(user.email);
                 $('#editUserForm [name="role"]').val(user.role);
                 $('#editUserModal').modal('show');
             },
@@ -202,11 +188,8 @@ $(document).ready(function() {
         const userId = $('#editUserForm [name="userId"]').val();
         const formData = new FormData($('#editUserForm')[0]);
         $.ajax({
-            url: `/api/admin/users/${userId}`,
+            url: `/admin/users/${userId}`,
             method: 'PUT',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token')
-            },
             data: formData,
             processData: false,
             contentType: false,
@@ -226,11 +209,8 @@ $(document).ready(function() {
         if (confirm('Are you sure you want to delete this user?')) {
             const userId = $(this).data('id');
             $.ajax({
-                url: `/api/admin/users/${userId}`,
+                url: `/admin/users/${userId}`,
                 method: 'DELETE',
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token')
-                },
                 success: function(response) {
                     loadUsers();
                 },
@@ -243,3 +223,4 @@ $(document).ready(function() {
     });
 });
 </script> 
+<%- include('../layouts/footer') %>
