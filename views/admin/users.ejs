@@ -1,0 +1,245 @@
+<%- include('../layouts/admin') %>
+
+<div class="container-fluid">
+    <h2 class="mb-4">User Management</h2>
+    
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Users List</h5>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                <i class="fas fa-plus"></i> Add User
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Created At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersList">
+                        <tr>
+                            <td colspan="5" class="text-center">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" name="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <select class="form-select" name="role" required>
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveUserBtn">Save User</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <input type="hidden" name="userId">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <select class="form-select" name="role" required>
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="updateUserBtn">Update User</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Load users list
+    function loadUsers() {
+        $.ajax({
+            url: '/api/admin/users',
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
+            },
+            success: function(users) {
+                let usersHtml = '';
+                users.forEach(user => {
+                    usersHtml += `
+                        <tr>
+                            <td>${user.name}</td>
+                            <td>${user.email}</td>
+                            <td>${user.role}</td>
+                            <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary edit-user" data-id="${user._id}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger delete-user" data-id="${user._id}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                $('#usersList').html(usersHtml);
+            },
+            error: function(xhr) {
+                console.error('Error loading users:', xhr);
+                alert('Error loading users');
+            }
+        });
+    }
+
+    // Initial load
+    loadUsers();
+
+    // Add user
+    $('#saveUserBtn').click(function() {
+        const formData = new FormData($('#addUserForm')[0]);
+        $.ajax({
+            url: '/api/admin/users',
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
+            },
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                $('#addUserModal').modal('hide');
+                $('#addUserForm')[0].reset();
+                loadUsers();
+            },
+            error: function(xhr) {
+                console.error('Error adding user:', xhr);
+                alert('Error adding user');
+            }
+        });
+    });
+
+    // Edit user
+    $(document).on('click', '.edit-user', function() {
+        const userId = $(this).data('id');
+        $.ajax({
+            url: `/api/admin/users/${userId}`,
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
+            },
+            success: function(user) {
+                $('#editUserForm [name="userId"]').val(user._id);
+                $('#editUserForm [name="name"]').val(user.name);
+                $('#editUserForm [name="email"]').val(user.email);
+                $('#editUserForm [name="role"]').val(user.role);
+                $('#editUserModal').modal('show');
+            },
+            error: function(xhr) {
+                console.error('Error loading user:', xhr);
+                alert('Error loading user');
+            }
+        });
+    });
+
+    // Update user
+    $('#updateUserBtn').click(function() {
+        const userId = $('#editUserForm [name="userId"]').val();
+        const formData = new FormData($('#editUserForm')[0]);
+        $.ajax({
+            url: `/api/admin/users/${userId}`,
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
+            },
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                $('#editUserModal').modal('hide');
+                loadUsers();
+            },
+            error: function(xhr) {
+                console.error('Error updating user:', xhr);
+                alert('Error updating user');
+            }
+        });
+    });
+
+    // Delete user
+    $(document).on('click', '.delete-user', function() {
+        if (confirm('Are you sure you want to delete this user?')) {
+            const userId = $(this).data('id');
+            $.ajax({
+                url: `/api/admin/users/${userId}`,
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                success: function(response) {
+                    loadUsers();
+                },
+                error: function(xhr) {
+                    console.error('Error deleting user:', xhr);
+                    alert('Error deleting user');
+                }
+            });
+        }
+    });
+});
+</script> 
