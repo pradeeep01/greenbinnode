@@ -27,6 +27,11 @@ const binSchema = new mongoose.Schema({
         required: true,
         min: -180,
         max: 180
+    },
+    isVerified: {
+        type: Number,
+        enum: [0, 1],
+        default: 0
     }
 }, {
     timestamps: true // Adds createdAt and updatedAt timestamps
@@ -36,6 +41,7 @@ const binSchema = new mongoose.Schema({
 binSchema.index({ vehicleId: 1 });
 binSchema.index({ addedBy: 1 });
 binSchema.index({ latitude: 1, longitude: 1 }); // Geospatial index
+binSchema.index({ isVerified: 1 }); // Index for verification status
 
 // Pre-save middleware to validate coordinates
 binSchema.pre('save', function(next) {
@@ -66,6 +72,18 @@ binSchema.methods.updateLocation = async function(latitude, longitude) {
 // Method to update image
 binSchema.methods.updateImage = async function(imageUrl) {
     this.image = imageUrl;
+    return this.save();
+};
+
+// Method to verify bin
+binSchema.methods.verify = async function() {
+    this.isVerified = 1;
+    return this.save();
+};
+
+// Method to unverify bin
+binSchema.methods.unverify = async function() {
+    this.isVerified = 0;
     return this.save();
 };
 
