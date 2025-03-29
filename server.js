@@ -12,7 +12,7 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-    origin: '*', // Allow all origins in development
+    origin: process.env.CORS_ORIGIN || '*', // Allow all origins in development
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -76,6 +76,7 @@ app.use((req, res, next) => {
 // Routes
 app.use('/web', require('./routes/webauth.routes'));
 app.use('/api/auth', require('./routes/auth.routes'));
+app.use('/api/contact', require('./routes/contact.routes'));
 app.use('/admin', require('./routes/admin.routes'));
 
 // Error handling in development
