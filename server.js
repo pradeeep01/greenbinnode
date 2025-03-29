@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const flash = require('connect-flash');
 const path = require('path');
+const passport = require('passport');
+require('./config/passport');
 require('dotenv').config();
 
 const app = express();
@@ -30,6 +32,8 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }));
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Flash messages
 app.use(flash());
@@ -43,15 +47,33 @@ app.use((req, res, next) => {
     next();
 });
 
+
 // Routes
+app.use('/web', require('./routes/webauth.routes'));
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/admin', require('./routes/admin.routes'));
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
-});
+
+// Error handling in development
+if (process.env.NODE_ENV === 'development') {
+    app.use((err, req, res, next) => {
+        console.error(err.stack);
+        res.status(err.status || 500).json({
+            status: 'error',
+            message: err.message,
+            stack: err.stack
+        });
+    });
+} else {
+    app.use((err, req, res, next) => {
+        console.error(err.stack);
+        res.status(err.status || 500).json({
+            status: 'error',
+            message: 'Internal server error'
+        });
+    });
+}
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
