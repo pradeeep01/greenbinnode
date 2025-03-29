@@ -46,6 +46,11 @@ exports.login = (req, res, next) => {
 };
 
 exports.logout = (req, res) => {
-    req.logout();
-    res.redirect('/login');
+    req.logout((err) => {
+        if (err) {
+            console.error(err);
+            return res.redirect('/web/login');
+        }
+        res.redirect('/web/login');
+    });
 };
