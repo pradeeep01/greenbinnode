@@ -27,7 +27,8 @@ const vehicleSchema = new mongoose.Schema({
         type: String,
         enum: ['active', 'inactive'],
         default: 'active'
-    }
+    },
+    tracking: { type: Boolean, default: false } // ✅ Toggle Tracking
 }, {
     timestamps: true // Adds createdAt and updatedAt timestamps
 });

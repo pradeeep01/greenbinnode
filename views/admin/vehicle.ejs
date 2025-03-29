@@ -18,12 +18,13 @@
                             <th>Driver Name</th>
                             <th>Name</th>
                             <th>Status</th>
+                            <th>Tracking</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="vehicleList">
                         <tr>
-                            <td colspan="5" class="text-center">Loading...</td>
+                            <td colspan="6" class="text-center">Loading...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -121,6 +122,11 @@ $(document).ready(function() {
                             <td>${vehicle.name}</td>
                             <td>${vehicle.status}</td>
                             <td>
+                                <button class="btn btn-sm ${vehicle.tracking ? 'btn-success' : 'btn-secondary'} toggle-tracking" data-id="${vehicle._id}">
+                                    ${vehicle.tracking ? 'Tracking ON' : 'Tracking OFF'}
+                                </button>
+                            </td>
+                            <td>
                                 <button class="btn btn-sm btn-primary edit-vehicle" data-id="${vehicle._id}">
                                     <i class="fas fa-edit"></i>
                                 </button>
@@ -140,6 +146,20 @@ $(document).ready(function() {
 
     loadVehicles();
 
+    $(document).on('click', '.toggle-tracking', function() {
+        const vehicleId = $(this).data('id');
+        $.ajax({
+            url: `/admin/vehicles/${vehicleId}/toggle-tracking`,
+            method: 'POST',
+            success: function(response) {
+                loadVehicles();
+            },
+            error: function(xhr) {
+                alert('Failed to toggle tracking: ' + xhr.responseText);
+            }
+        });
+    });
+
     $('#addVehicleForm').submit(function(e) {
         e.preventDefault();
         $.ajax({
@@ -150,7 +170,6 @@ $(document).ready(function() {
                 $('#addVehicleModal').modal('hide');
                 $('#addVehicleForm')[0].reset();
                 loadVehicles();
-
             },
             error: function(xhr) {
                 alert('Failed to add vehicle: ' + xhr.responseText);
