@@ -66,11 +66,8 @@
 $(document).ready(function() {
     // Fetch dashboard data
     $.ajax({
-        url: '/api/admin/dashboard',
+        url: '/admin/dashboard/insights',
         method: 'GET',
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
-        },
         success: function(response) {
             $('#totalUsers').text(response.totalUsers);
             $('#activeUsers').text(response.activeUsers);
@@ -96,6 +93,6 @@ $(document).ready(function() {
         }
     });
 });
-</script> 
+</script>
 
 <%- include('../layouts/footer') %>

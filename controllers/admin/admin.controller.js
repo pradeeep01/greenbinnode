@@ -1,4 +1,35 @@
 const User = require('../../models/User');
+exports.getDashboardData = async (req, res) => {
+    try {
+        // Get total users count
+        const totalUsers = await User.countDocuments();
+        
+        // Get active users (those who logged in within last 30 days)
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const activeUsers = await User.countDocuments({
+            lastLoginDate: { $gte: thirtyDaysAgo }
+        });
+
+        // Get admin users count
+        const adminUsers = await User.countDocuments({ role: 'admin' });
+
+        // Get recent users
+        const recentUsers = await User.find()
+            .select('name email role createdAt')
+            .sort({ createdAt: -1 })
+            .limit(10);
+
+        res.json({
+            totalUsers,
+            activeUsers,
+            adminUsers,
+            recentUsers
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
 
 exports.getAllUsers = async (req, res) => {
     try {
