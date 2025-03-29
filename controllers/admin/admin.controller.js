@@ -1,5 +1,8 @@
 const User = require('../../models/User');
 const bcrypt = require('bcryptjs');
+const Bin = require('../../models/Bin');
+const Vehicle = require('../../models/Vehicle');
+
 exports.getDashboardData = async (req, res) => {
     try {
         // Get total users count
@@ -20,11 +23,19 @@ exports.getDashboardData = async (req, res) => {
             .sort({ createdAt: -1 })
             .limit(10);
 
+        // Get total bins count
+        const totalBins = await Bin.countDocuments();
+
+        // Get total vehicles count
+        const totalVehicles = await Vehicle.countDocuments();
+
         res.json({
             totalUsers,
             activeUsers,
             adminUsers,
-            recentUsers
+            recentUsers,
+            totalBins,
+            totalVehicles
         });
     } catch (error) {
         console.error(error);

@@ -5,6 +5,7 @@ const flash = require('connect-flash');
 const path = require('path');
 const passport = require('passport');
 const cors = require('cors');
+const trackingService = require('./service/trackingService');
 
 // Import models
 require('./models/User');
@@ -110,6 +111,9 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 const PORT = process.env.PORT || 3000;
+
+trackingService.startTrackingService();
+
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 }); 
