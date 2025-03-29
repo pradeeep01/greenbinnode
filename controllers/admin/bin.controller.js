@@ -4,7 +4,6 @@ const Bin = require('../../models/Bin');
 exports.getAllBins = async (req, res) => {
     try {
         const bins = await Bin.find()
-            .populate('vehicleId', 'vehicle_num')
             .populate('addedBy', 'name');
         res.json(bins);
     } catch (error) {
@@ -17,7 +16,6 @@ exports.getAllBins = async (req, res) => {
 exports.getBinById = async (req, res) => {
     try {
         const bin = await Bin.findById(req.params.id)
-            .populate('vehicleId', 'vehicle_num')
             .populate('addedBy', 'name');
         
         if (!bin) {
@@ -39,11 +37,9 @@ exports.verifyBin = async (req, res) => {
             return res.status(404).json({ message: 'Bin not found' });
         }
 
-        // Add verification logic here if needed
-        // For example, you could add a verified field to your schema
-        // bin.verified = true;
+        bin.isVerified = 1;
         await bin.save();
-
+        
         res.json({ message: 'Bin verified successfully', bin });
     } catch (error) {
         console.error(error);
