@@ -4,18 +4,40 @@ const session = require('express-session');
 const flash = require('connect-flash');
 const path = require('path');
 const passport = require('passport');
+const cors = require('cors');
 require('./config/passport');
 require('dotenv').config();
 
 const app = express();
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/greenbin', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => console.log('MongoDB Connected'))
-.catch(err => console.log('MongoDB Connection Error:', err));
+// CORS configuration
+const corsOptions = {
+    origin: '*', // Allow all origins in development
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    maxAge: 86400 // 24 hours
+};
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
+// Database connection with retry logic
+const connectDB = async () => {
+    try {
+        const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/greenbin', {
+            serverSelectionTimeoutMS: 5000,
+            socketTimeoutMS: 45000,
+        });
+        console.log(`MongoDB Connected: ${conn.connection.host}`);
+    } catch (error) {
+        console.error('MongoDB Connection Error:', error);
+        // Retry connection after 5 seconds
+        setTimeout(connectDB, 5000);
+    }
+};
+
+connectDB();
 
 // Middleware
 app.use(express.json());
@@ -30,14 +52,18 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(session({
     secret: process.env.SESSION_SECRET || 'your-secret-key',
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+        httpOnly: true,
+        maxAge: 86400 // 24 hours
+    }
 }));
 app.use(passport.initialize());
 app.use(passport.session());
 
 // Flash messages
 app.use(flash());
-
 
 // Global variables
 app.use((req, res, next) => {
@@ -47,12 +73,10 @@ app.use((req, res, next) => {
     next();
 });
 
-
 // Routes
 app.use('/web', require('./routes/webauth.routes'));
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/admin', require('./routes/admin.routes'));
-
 
 // Error handling in development
 if (process.env.NODE_ENV === 'development') {
@@ -73,7 +97,6 @@ if (process.env.NODE_ENV === 'development') {
         });
     });
 }
-
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
