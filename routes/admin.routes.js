@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const adminController = require('../controllers/admin.controller');
+const adminController = require('../controllers/admin/admin.controller');
 const { protect, authorize } = require('../middleware/auth.middleware');
+const { ensureAuthenticated, ensureAdmin } = require('../middleware/webauth.middleware');
 
 // Admin routes with authentication and authorization
 router.get('/users', protect, authorize('admin'), adminController.getAllUsers);
@@ -10,7 +11,7 @@ router.put('/users/:id', protect, authorize('admin'), adminController.updateUser
 router.delete('/users/:id', protect, authorize('admin'), adminController.deleteUser);
 
 // Admin panel views
-router.get('/dashboard', protect, authorize('admin'), (req, res) => {
+router.get('/dashboard', ensureAuthenticated, ensureAdmin, (req, res) => {
     res.render('admin/dashboard');
 });
 
